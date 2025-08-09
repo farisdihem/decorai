@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ديكو AI</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: auto; padding: 20px; direction: rtl; }
+    .card { border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    button { background: #0070f3; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; }
+    button:disabled { background: #999; }
+    img { max-width: 100%; margin-top: 10px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+
+<h1>ديكو AI — تعديل ديكور الصور</h1>
+
+<div class="card">
+  <label>اختر صورة:
+    <input type="file" id="fileInput" accept="image/*">
+  </label>
+  <br><br>
+  <label>وصف التعديل:
+    <textarea id="prompt" rows="3" style="width:100%;"></textarea>
+  </label>
+  <br><br>
+  <button id="generateBtn">توليد الديكور</button>
+  <div id="status"></div>
+</div>
+
+<div class="card">
+  <h3>معاينة الصورة</h3>
+  <img id="preview" src="" alt="">
+  <h3>الصورة الناتجة</h3>
+  <img id="result" src="" alt="">
+</div>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const preview = document.getElementById('preview');
+const resultImg = document.getElementById('result');
+const promptEl = document.getElementById('prompt');
+const statusEl = document.getElementById('status');
+const generateBtn = document.getElementById('generateBtn');
+
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if (file) {
+    preview.src = URL.createObjectURL(file);
+  }
+});
+
+generateBtn.addEventListener('click', async () => {
+  const file = fileInput.files[0];
+  if (!file) return alert('اختر صورة أولاً');
+  const prompt = promptEl.value || 'Modern bright interior with stylish furniture';
+  
+  statusEl.textContent = 'جار المعالجة...';
+  generateBtn.disabled = true;
+
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('prompt', prompt);
+
+  try {
+    const res = await fetch('/api/edit-image', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.output) {
+      resultImg.src = data.output;
+      statusEl.textContent = 'تم الانتهاء ✔';
+    } else {
+      statusEl.textContent = 'حدث خطأ: ' + (data.error || 'غير معروف');
+    }
+  } catch (err) {
+    statusEl.textContent = 'خطأ في الاتصال';
+  }
+  generateBtn.disabled = false;
+});
+</script>
+
+</body>
+</html>
